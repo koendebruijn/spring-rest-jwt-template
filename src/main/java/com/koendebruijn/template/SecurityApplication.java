@@ -30,12 +30,12 @@ public class SecurityApplication {
             userService.saveRole(new Role(null, "ROLE_USER"));
             userService.saveRole(new Role(null, "ROLE_ADMIN"));
 
-            userService.saveUser(new User(null, "Koen de Bruijn", "Admin", "Admin", new ArrayList<>()));
-            userService.saveUser(new User(null, "Koen de Bruijn", "User", "User", new ArrayList<>()));
+            userService.saveUser(new User(null, "Koen de Bruijn", "admin", "123", new ArrayList<>()));
+            userService.saveUser(new User(null, "Koen de Bruijn", "user", "123", new ArrayList<>()));
 
-            userService.addRoleToUser("Admin", "ROLE_ADMIN");
-            userService.addRoleToUser("Admin", "ROLE_USER");
-            userService.addRoleToUser("User", "ROLE_USER");
+            userService.addRoleToUser("admin", "ROLE_ADMIN");
+            userService.addRoleToUser("admin", "ROLE_USER");
+            userService.addRoleToUser("user", "ROLE_USER");
         };
     }
 }

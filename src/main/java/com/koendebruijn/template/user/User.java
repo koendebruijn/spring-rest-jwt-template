@@ -1,5 +1,6 @@
 package com.koendebruijn.template.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -21,6 +22,8 @@ public class User {
     private Long id;
     private String name;
     private String username;
+
+    @JsonIgnore
     private String password;
     @ManyToMany(fetch = EAGER)
     private Collection<Role> roles = new ArrayList<>();

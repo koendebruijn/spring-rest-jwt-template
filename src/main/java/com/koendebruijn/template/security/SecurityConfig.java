@@ -1,5 +1,6 @@
 package com.koendebruijn.template.security;
 
+import com.koendebruijn.template.auth.AuthService;
 import com.koendebruijn.template.filter.CustomAuthenticationFilter;
 import com.koendebruijn.template.filter.CustomAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -36,10 +38,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(STATELESS);
         http.authorizeRequests().antMatchers("/login", "/api/v1/token/refresh/**").permitAll();
         http.authorizeRequests().antMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN");
+        http.authorizeRequests().antMatchers(GET, "/api/v1/users").hasAuthority("ROLE_ADMIN");
         http.authorizeRequests().antMatchers("/api/v1/**").hasAuthority("ROLE_USER");
         http.authorizeRequests().anyRequest().authenticated();
         http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
-        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new CustomAuthorizationFilter(authService), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

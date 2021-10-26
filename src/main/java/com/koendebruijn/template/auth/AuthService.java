@@ -78,20 +78,24 @@ public class AuthService {
                     .withClaim("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
                     .sign(algorithm);
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", accessToken);
-
-            Cookie cookie = new Cookie("refreshToken", refreshToken);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            response.addCookie(cookie);
-
-            response.setContentType(APPLICATION_JSON_VALUE);
-            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+            createResponse(response, refreshToken, accessToken);
 
         } catch (Exception exception) {
             handleJWTException(exception, response);
         }
+    }
+
+    public static void createResponse(HttpServletResponse response, String refreshToken, String accessToken) throws IOException {
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", accessToken);
+
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+
+        response.setContentType(APPLICATION_JSON_VALUE);
+        new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
 
     public void createTokens(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {

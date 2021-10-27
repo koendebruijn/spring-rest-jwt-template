@@ -1,6 +1,6 @@
 package com.koendebruijn.template.filter;
 
-import com.koendebruijn.template.auth.AuthService;
+import com.koendebruijn.template.token.TokenService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +12,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 @Slf4j
 @RequiredArgsConstructor
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
-    private final AuthService authService;
+    private final TokenService tokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -24,6 +26,17 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-        authService.createTokens(request, response, filterChain);
+        String authorizationHeader = request.getHeader(AUTHORIZATION);
+
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authorizationHeader.substring("Bearer ".length());
+        tokenService.verifyAccessToken(token);
+        filterChain.doFilter(request, response);
+
+
     }
 }

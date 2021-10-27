@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koendebruijn.template.auth.AuthService;
 import com.koendebruijn.template.auth.dto.LoginRequest;
 import com.koendebruijn.template.token.TokenService;
+import com.koendebruijn.template.token.dto.TokenResponse;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -40,6 +41,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final TokenService tokenService;
+    private final AuthService authService;
 
 
     @SneakyThrows
@@ -61,19 +63,8 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         String subject = user.getUsername();
         List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 
-        String accessToken = tokenService.signAccessToken(subject, roles);
-
-        String refreshToken = tokenService.signRefreshToken(subject, roles);
-
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-
-        Cookie cookie = new Cookie("refresh_token", refreshToken);
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
-
-        response.setContentType(APPLICATION_JSON_VALUE);
-        new ObjectMapper().writeValue(response.getOutputStream(), tokens);
+        TokenResponse tokenResponse = new TokenResponse(tokenService.signAccessToken(subject, roles), tokenService.signRefreshToken(subject, roles));
+        authService.createResponse(response, tokenResponse);
     }
 
 

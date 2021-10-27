@@ -1,6 +1,5 @@
 package com.koendebruijn.template.user;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.koendebruijn.template.user.exception.RoleNotFoundException;
 import com.koendebruijn.template.user.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -73,8 +72,8 @@ public class UserService implements UserDetailsService {
         return userOptional.get();
     }
 
-    public User updateUser(User user) {
-        return userRepository.save(user);
+    public void updateUser(User user) {
+        userRepository.save(user);
     }
 
     public List<User> getUsers() {

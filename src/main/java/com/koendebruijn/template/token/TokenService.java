@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.koendebruijn.template.user.User;
 import com.koendebruijn.template.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +15,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
-    Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
+    final Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
     private final UserService userService;
 
     public String signAccessToken(String subject, List<String> roles) {

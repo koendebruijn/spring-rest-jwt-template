@@ -3,13 +3,15 @@ package com.koendebruijn.template.auth;
 import com.koendebruijn.template.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.HashMap;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -25,9 +27,17 @@ public class AuthController {
         return authService.getUserFromAuthHeader(request.getHeader(AUTHORIZATION));
     }
 
-    @GetMapping("/token/refresh")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    @GetMapping("/refresh-token")
+    public HashMap<String, String> refreshToken(@CookieValue("refresh_token") String refreshToken, HttpServletResponse response) {
 
-        authService.refreshToken(request, response);
+        HashMap<String, String> tokens = authService.refreshToken(refreshToken);
+
+        Cookie cookie = new Cookie("refresh_token", tokens.get("refreshToken"));
+        tokens.remove("refreshToken");
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+
+
+        return tokens;
     }
 }

@@ -2,6 +2,7 @@ package com.koendebruijn.template.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -22,9 +23,16 @@ public class User {
     private Long id;
     private String name;
     private String username;
-
     @JsonIgnore
     private String password;
+
+    @JsonIgnore
+    private String accessToken;
+
+    @JsonIgnore
+    private String refreshToken;
+
+
     @ManyToMany(fetch = EAGER)
     private Collection<Role> roles = new ArrayList<>();
 

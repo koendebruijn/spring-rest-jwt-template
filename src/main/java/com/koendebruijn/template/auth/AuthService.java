@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.koendebruijn.template.token.TokenService;
 import com.koendebruijn.template.user.Role;
 import com.koendebruijn.template.user.User;
 import com.koendebruijn.template.user.UserService;
@@ -36,6 +37,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class AuthService {
     private final Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
     private final UserService userService;
+    private final TokenService tokenService;
 
 
     public DecodedJWT decodeJTW(String token) {
@@ -56,42 +58,29 @@ public class AuthService {
         return userService.getUser(username);
     }
 
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authorizationHeader = request.getHeader(AUTHORIZATION);
+    public HashMap<String, String> refreshToken(String refreshToken) {
+        User user = tokenService.verifyRefreshToken(refreshToken);
+        String subject = user.getUsername();
+        List<String> roles = user.getRoles().stream().map(Role::getName).collect(Collectors.toList());
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Refresh token is missing");
-        }
+        String newRefreshToken = tokenService.signRefreshToken(subject, roles);
+        String newAccessToken = tokenService.signAccessToken(subject, roles);
 
-        try {
-            String refreshToken = authorizationHeader.substring("Bearer ".length());
-
-            DecodedJWT decodedJWT = decodeJTW(refreshToken);
-
-            String username = decodedJWT.getSubject();
-            User user = userService.getUser(username);
-
-            String accessToken = JWT.create()
-                    .withSubject(user.getUsername())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
-                    .withIssuer(request.getRequestURL().toString())
-                    .withClaim("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
-                    .sign(algorithm);
-
-            createResponse(response, refreshToken, accessToken);
-
-        } catch (Exception exception) {
-            handleJWTException(exception, response);
-        }
+        return new HashMap<>(){{
+            put("accessToken", newAccessToken);
+            put("refreshToken", newRefreshToken);
+        }};
     }
 
+    /**
+     * @deprecated
+     */
     public static void createResponse(HttpServletResponse response, String refreshToken, String accessToken) throws IOException {
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", accessToken);
 
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
         response.addCookie(cookie);
 
         response.setContentType(APPLICATION_JSON_VALUE);

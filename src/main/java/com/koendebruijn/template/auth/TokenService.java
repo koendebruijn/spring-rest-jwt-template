@@ -1,4 +1,4 @@
-package com.koendebruijn.template.token;
+package com.koendebruijn.template.auth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 @Service
 @RequiredArgsConstructor
 public class TokenService {
-    final Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
+    final Algorithm algorithm = Algorithm.HMAC256("SECRET".getBytes());
     private final UserService userService;
 
     public String signAccessToken(String subject, List<String> roles) {
@@ -42,16 +42,23 @@ public class TokenService {
         return token;
     }
 
-    public void verifyAccessToken(String accessToken) {
+    public boolean verifyAccessToken(String accessToken) {
 
         DecodedJWT decodedJWT = decodeJTW(accessToken);
         String username = decodedJWT.getSubject();
         User user = userService.getUser(username);
+
+        if (!accessToken.equals(user.getAccessToken())) {
+            return false;
+        }
+
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
         user.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
 
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+        return true;
     }
 
     public String signRefreshToken(String subject, List<String> roles) {

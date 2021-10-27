@@ -3,7 +3,7 @@ package com.koendebruijn.template.security;
 import com.koendebruijn.template.auth.AuthService;
 import com.koendebruijn.template.filter.CustomAuthenticationFilter;
 import com.koendebruijn.template.filter.CustomAuthorizationFilter;
-import com.koendebruijn.template.token.TokenService;
+import com.koendebruijn.template.auth.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -43,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(new HttpStatusEntryPoint(UNAUTHORIZED));
 
         http.sessionManagement().sessionCreationPolicy(STATELESS);
-        http.authorizeRequests().antMatchers("/api/v1/auth/login/**", "/api/v1/token/refresh/**").permitAll();
+        http.authorizeRequests().antMatchers("/api/v1/auth/login", "/api/v1/auth/refresh-token").permitAll();
 
         http.authorizeRequests().antMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN");
         http.authorizeRequests().antMatchers(GET, "/api/v1/users").hasAuthority("ROLE_ADMIN");

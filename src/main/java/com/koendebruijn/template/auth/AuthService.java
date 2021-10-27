@@ -2,8 +2,7 @@ package com.koendebruijn.template.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.koendebruijn.template.token.TokenService;
-import com.koendebruijn.template.token.dto.TokenResponse;
+import com.koendebruijn.template.auth.dto.TokenResponse;
 import com.koendebruijn.template.user.Role;
 import com.koendebruijn.template.user.User;
 import com.koendebruijn.template.user.UserService;
@@ -61,4 +60,12 @@ public class AuthService {
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
 
+    public void logout(String refreshToken) {
+        User user = tokenService.verifyRefreshToken(refreshToken);
+
+        user.setAccessToken(null);
+        user.setRefreshToken(null);
+
+        userService.updateUser(user);
+    }
 }

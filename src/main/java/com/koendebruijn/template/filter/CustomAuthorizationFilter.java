@@ -1,6 +1,6 @@
 package com.koendebruijn.template.filter;
 
-import com.koendebruijn.template.token.TokenService;
+import com.koendebruijn.template.auth.TokenService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @Slf4j
@@ -34,7 +35,15 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         }
 
         String token = authorizationHeader.substring("Bearer ".length());
-        tokenService.verifyAccessToken(token);
+        boolean result = tokenService.verifyAccessToken(token);
+
+        if (!result) {
+            response.setStatus(SC_UNAUTHORIZED);
+            filterChain.doFilter(request, response);
+
+            return;
+        }
+
         filterChain.doFilter(request, response);
 
 
